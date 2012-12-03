@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema name="mecab-tokenizer-test" version="1.0">
+  <types>
+    <fieldType name="uuid"       class="solr.UUIDField"/>
+    <fieldType name="str"        class="solr.StrField"/>
+    <fieldType name="text-mecab" class="solr.TextField">
+      <analyzer>
+        <charFilter class="com.livedoor.lucene.analysis.UnicodeNormalizationCharFilterFactory" mode="nfkc"/>
+        <tokenizer
+          class="com.livedoor.lucene.analysis.MeCabTokenizerFactory"
+          mecabArgs="-d /home/user/solr/conf/mecab/dict -F %f[6]"
+          stopPosids="/home/user/solr/conf/stopposids.txt.example"
+          termType="formatted"
+          termFallbackType="surface"
+          typeAs="posid"
+          payloadAs="none"
+          />
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+    <fieldType name="text-mecab-yomi" class="solr.TextField">
+      <analyzer>
+        <charFilter class="com.livedoor.lucene.analysis.UnicodeNormalizationCharFilterFactory" mode="nfkc"/>
+        <tokenizer
+          class="com.livedoor.lucene.analysis.MeCabTokenizerFactory"
+          mecabArgs="-d /home/user/solr/conf/mecab/dict"
+          stopPosids="/home/user/solr/conf/stopposids.txt.example"
+          termType="feature"
+          typeAs="posid"
+          payloadAs="none"
+          />
+        <filter class="solr.PatternReplaceFilterFactory" pattern="[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*),.*" replacement="$1"/>
+        <filter class="solr.ICUTransformFilterFactory" id="Hiragana-Katakana"/>
+      </analyzer>
+    </fieldType>
+  </types>
+  <fields>
+    <field name="id"           type="uuid"            indexed="true"  stored="true"  required="true"  default="NEW"/>
+    <field name="title"        type="text-mecab-yomi" indexed="true"  stored="true"/>
+    <field name="text"         type="text-mecab"      indexed="true"  stored="true"/>
+  </fields>
+  <uniqueKey>id</uniqueKey>
+</schema>
+

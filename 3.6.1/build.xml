@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project default="all" basedir=".">
+
+    <!-- Build environments -->
+    <property name="project" value="livedoor-solr-MeCabTokenizer" />
+    
+    <property name="version" value="3.6.1" />
+    <property name="vendor" value="livedoor" />
+
+    <property name="lib" value="lib" />
+    <property name="src" value="src" />
+    <property name="encoding" value="UTF-8" />
+    <property name="build" value="build" />
+    <property name="dist" value="dist" />
+    <property name="final.name" value="${project}-${version}" />
+    <property name="jar" value="${dist}/${final.name}.jar" />
+    <property name="javac.debug" value="off" />
+
+    <tstamp>
+        <format property="current.year" pattern="yyyy" />
+        <format property="build.timestamp" pattern="yyyy-MMdd-HHmm" />
+    </tstamp>
+
+    <path id="classpath">
+        <pathelement location="${build}/classes/java" />
+        <fileset dir="${lib}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+    
+    <path id="classpath-test">
+        <path refid="classpath"/>
+        <pathelement location="${build}/classes/test" />
+        <fileset dir="${lib}">
+            <include name="lucene-test-framework-*.jar" />
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${dist}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Init -->
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <!-- Clean -->
+    <target name="clean"
+            description="Cleans compiled files and other temporary artifacts.">
+        <delete dir="${build}" />
+        <delete dir="${dist}" />
+    </target>
+
+    <!-- All -->
+    <target name="all"
+            depends="dist-jar">
+    </target>
+
+    <!-- Test -->
+    <target name="test" depends="compile-tests">
+        <junit printsummary="yes" haltonfailure="yes" maxmemory="512M" fork="on">
+            <formatter type="brief" usefile="no"/>
+            <sysproperty key="java.library.path" value="${lib}"/>
+            <classpath refid="classpath-test"/>
+            <assertions>
+                <enable/>
+            </assertions>
+            <batchtest fork="yes">
+                <fileset dir="src/test" includes="**/Test*.java,**/*Test.java"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- Compile -->
+    <target name="compile"
+        description="Compile the source code."
+        depends="init">
+        <mkdir dir="${build}/classes/java"/>
+        <javac encoding="${encoding}"
+               srcdir="${src}/java"
+               destdir="${build}/classes/java"
+               debug="${javac.debug}"
+               includeantruntime="true">
+            <compilerarg value="-Xlint:deprecation"/>
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <!-- Compile Test -->
+    <target name="compile-tests"
+        description="Compile the test codes."
+        depends="compile,dist-jar">
+        <mkdir dir="${build}/classes/test" />
+        <javac encoding="${encoding}"
+               srcdir="${src}/test"
+               destdir="${build}/classes/test"
+               debug="${javac.debug}"
+               includeantruntime="true">
+            <classpath refid="classpath" />
+            <classpath refid="classpath-test" />
+        </javac>
+    </target>
+    
+    <!-- Jar -->
+    <target name="dist-jar"
+            description="Creates the JAR Distribution file."
+            depends="compile">
+        <mkdir dir="${dist}"/>
+        <jar destfile="${jar}"
+             basedir="${build}/classes/java"
+             excludes="**/*.java">
+            <manifest>
+                <attribute name="Created-By" value="${vendor}" />
+                <attribute name="Specification-Title" value="${project}" />
+                <attribute name="Specification-Version" value="${version}" />
+                <attribute name="Specification-Vendor" value="${vendor}" />
+                <attribute name="Implementation-Title" value="${project}" />
+                <attribute name="Implementation-Version" value="${version}-${build.timestamp}" />
+                <attribute name="Implementation-Vendor" value="${vendor}" />
+            </manifest>
+        </jar>
+    </target>
+
+</project>
+

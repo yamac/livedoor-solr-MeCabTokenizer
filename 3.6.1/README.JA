@@ -1,0 +1,65 @@
+=MeCabTokenizer=
+
+MeCabTokenizerはSolrで純正のMeCab Java bindingを使用するTokenizerです。
+Java bindingを使用するためPure JavaなTokenizerと比べると、速度面ではあまり有利
+ではありませんが、MeCabを他の言語でもbinding利用している場合に、共通のMeCab
+辞書を使うことで利便性が上がります。
+
+Solr 3.6.1 用です。
+
+
+=ビルドの準備=
+
+プロジェクトをビルドするために下記のいくつかのモジュールをlibディレクトリ内に
+配置する必要があります。
+
+lib/
+  apache-solr-core-3.6.1.jar               - apache-solr-3.6.1.tgz/dist/apache-solr-core-3.6.1.jar
+  apache-solr-solrj-3.6.1.jar              - apache-solr-3.6.1.tgz/dist/apache-solr-solrj-3.6.1.jar
+  lucene-core-3.6.1.jar                    - apache-solr-3.6.1.tgz/dist/apache-solr-3.6.1.war/WEB-INF/lib/lucene-core-3.6.1.jar
+  lucene-test-framework-3.6.1-SHAPSHOT.jar - apache-solr-3.6.1-src.tgz/lucene/build/test-framework/lucene-test-framework-3.6.1-SNAPSHOT.jar
+  junit-4.10.jar                           - apache-solr-3.6.1-src.tgz/lucene/test-framework/lib/junit-4.10.jar
+  MeCab.jar                                - MeCab Java binding
+  libMeCab.so                              - MeCab Java binding
+
+
+=ビルド=
+
+ビルドするには 'ant' コマンドを実行します。続いてテストするために 'ant test' 
+を実行します。
+
+
+=使用例=
+
+ビルドが完了するとdistディレクトリに livedoor-solr-MeCabTokenizer-X.X.X.jar
+が生成されているので、MeCab.jar, libMeCab.soファイルと共にSolrのdistまたはlib
+ディレクトリにコピーします。
+
+schema.xml.example:
+
+    <fieldType name="text-mecab" class="solr.TextField">
+      <analyzer>
+        <tokenizer
+          class="com.livedoor.solr.analysis.MeCabTokenizerFactory"
+          mecabArgs="-d /home/user/solr/conf/mecab/dict"
+          stopPosids="/home/user/solr/conf/stopposids.txt.example"
+          termType="surface"
+          typeAs="posid"
+          payloadAs="none"
+          />
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+tokenizerの定義部分には下記の属性があります。
+
+ * mecabArgs: MeCabの引数を指定
+ * stopPosids: ストップワードに対応する品詞IDファイルを指定
+ * termType: タームとして何を使うかをsurface,feature,formattedのいずれかを指定。
+     formattedを指定した場合はmecabArgsに-F引数を指定する。
+ * termFallbackType: termTypeがformattedのときにフォーマット文字列が取得できなかったときに
+     タームとして何を使うかをsurface,featureのいずれかを指定。
+ * typeAs: Type属性にposid,surface,featureのいずれかを指定、またはnone
+ * payloadAs: Payloadにposid,surface,featureのいずれかを指定、またはnone
+
+

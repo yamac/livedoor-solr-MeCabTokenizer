@@ -1,0 +1,66 @@
+=MeCabTokenizer=
+
+MeCabTokenizerはSolrで純正のMeCab Java bindingを使用するTokenizerです。
+Java bindingを使用するためPure JavaなTokenizerと比べると、速度面ではあまり有利
+ではありませんが、MeCabを他の言語でもbinding利用している場合に、共通のMeCab
+辞書を使うことで利便性が上がります。
+
+Solr 4.0.0 用です。
+
+
+=ビルドの準備=
+
+プロジェクトをビルドするために下記のいくつかのモジュールをlibディレクトリ内に
+配置する必要があります。
+
+lib/
+  lucene-core-4.0.0.jar              - apache-solr-4.0.0.tgz/dist/apache-solr-4.0.0.war/WEB-INF/lib/lucene-core-4.0.0.jar
+  lucene-analyzers-common-4.0.0.jar  - apache-solr-4.0.0.tgz/dist/apache-solr-4.0.0.war/WEB-INF/lib/lucene-analyzers-common-4.0.0.jar
+  lucene-codecs-4.0-SNAPSHOT.jar     - apache-solr-4.0.0-src.tgz/lucene/build/codecs/lucene-codecs-4.0-SNAPSHOT.jar
+  lucene-test-framework-4.0.0.jar    - apache-solr-4.0.0.tgz/dist/test-framework/lucene-libs/lucene-test-framework-4.0.0.jar
+  randomizedtesting-runner-2.0.1.jar - apache-solr-4.0.0.tgz/dist/test-framework/lib/randomizedtesting-runner-2.0.1.jar
+  junit-4.10.jar                     - apache-solr-4.0.0.tgz/dist/test-framework/lib/junit-4.10.jar
+  MeCab.jar                          - MeCab Java binding
+  libMeCab.so                        - MeCab Java binding
+
+
+=ビルド=
+
+ビルドするには 'ant' コマンドを実行します。続いてテストするために 'ant test' 
+を実行します。
+
+
+=使用例=
+
+ビルドが完了するとdistディレクトリに livedoor-lucene-MeCabTokenizer-X.X.X.jar 
+が生成されているので、MeCab.jar, libMeCab.soファイルと共にSolrのdistまたはlib
+ディレクトリにコピーします。
+
+schema.xml.example:
+
+    <fieldType name="text-mecab" class="solr.TextField">
+      <analyzer>
+        <tokenizer
+          class="com.livedoor.lucene.analysis.MeCabTokenizerFactory"
+          mecabArgs="-d /home/user/solr/conf/mecab/dict"
+          stopPosids="/home/user/solr/conf/stopposids.txt.example"
+          termType="surface"
+          typeAs="posid"
+          payloadAs="none"
+          />
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+tokenizerの定義部分には下記の属性があります。
+
+ * mecabArgs: MeCabの引数を指定
+ * stopPosids: ストップワードに対応する品詞IDファイルを指定
+ * termType: タームとして何を使うかをsurface,feature,formattedのいずれかを指定。
+     formattedを指定した場合はmecabArgsに-F引数を指定。
+ * termFallbackType: termTypeがformattedのときにフォーマット文字列が取得できなかったときに
+     タームとして何を使うかをsurface,featureのいずれかを指定。
+ * typeAs: Type属性にposid,surface,featureのいずれかを指定、またはnone
+ * payloadAs: Payloadにposid,surface,featureのいずれかを指定、またはnone
+
+
